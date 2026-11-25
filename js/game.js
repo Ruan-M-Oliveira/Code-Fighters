@@ -152,6 +152,7 @@
       global.UIManager.init(this);
       global.DebugManager.init();
       if (global.AttractMode) global.AttractMode.init(this);
+      if (global.GamepadInput) global.GamepadInput.init(this);
 
       this.enterMenu();
       this._runLoading();
@@ -162,7 +163,11 @@
 
     _wirePlayer: function () {
       var self = this;
-      this.player.onDamage = function () { self.addShake(9); self.damageFlash = 0.35; };
+      this.player.onDamage = function () {
+        self.addShake(9);
+        self.damageFlash = 0.35;
+        if (!self.isDemoMode && global.GamepadInput) global.GamepadInput.rumble(0.7, 0.4, 170);
+      };
       this.player.onPowerUp = function (type) {
         self.addFloater(self.player.x, self.player.y - 30, POWERUP_NAMES[type] || type, POWERUP_COLORS[type] || '#ffffff', 15);
       };
@@ -548,6 +553,7 @@
       this.particles.emitExplosion(p.x, p.y, { count: 30, color: '#ffffff', size: 16 });
       // the Game Over track replaces the old synthesised jingle
       this.audio.music.play('gameover', { restart: true, fadeOut: 0.35, fadeIn: 0.2 });
+      if (!this.isDemoMode && global.GamepadInput) global.GamepadInput.rumble(1, 1, 600);
       this.addShake(18);
       this.state = S.GAME_OVER;
       this._endTimer = 1.4;
@@ -733,6 +739,7 @@
       this.particles.emitShockwave(p.x, p.y, radius, col);
       this.audio.play('special');
       this.addShake(10);
+      if (!this.isDemoMode && global.GamepadInput) global.GamepadInput.rumble(0.9, 0.6, 320);
 
       // a fake piercing "projectile" lets CollisionManager handle score, combo and loot
       var fake = { x: 0, y: 0, vx: 0, vy: 0, _angle: 0, damage: dmg, piercing: true, active: true, tier: 5, owner: 'player' };
@@ -819,6 +826,7 @@
       if (!(dt > 0)) dt = 0.016;
       if (dt > 0.05) dt = 0.05;          // clamp: a stalled tab must not teleport enemies
       this.dt = dt;
+      if (global.GamepadInput) global.GamepadInput.update(dt);   // controle do Xbox
       this.update(dt);
       if (global.AttractMode) global.AttractMode.update(dt);
       this.audio.music.update();

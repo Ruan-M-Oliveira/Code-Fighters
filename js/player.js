@@ -227,6 +227,9 @@
       ix /= len;
       iy /= len;
     }
+    // controle: o analógico esquerdo dá movimento proporcional (0..1)
+    var pad = input.pad;
+    if (pad && (pad.move.x || pad.move.y)) { ix = pad.move.x; iy = pad.move.y; }
 
     var sh = this.ship;
     var speed = BASE_SPEED * sh.move.speed * (1 + this.up.MOVE * 0.05) * (FX.isActive('SPEED_BOOST') ? 1.5 : 1);
@@ -270,7 +273,7 @@
         this.specialCD -= dt;
         if (this.specialCD <= 0 && this.onSpecialReady) this.onSpecialReady();
       }
-      if (input.special && this.specialCD <= 0) {
+      if ((input.special || (pad && pad.special)) && this.specialCD <= 0) {
         this.specialCD = this.specialCooldown();
         if (this.onSpecial) this.onSpecial(this.up.SPECIAL);
       }
@@ -278,7 +281,7 @@
 
     // --- shooting (cadence comes from the ship, upgrades scale it) ---
     var W8 = sh.weapon;
-    var firing = input.fire || input.touch.active;
+    var firing = input.fire || input.touch.active || !!(pad && pad.fire);
     if (W8.spinUp) {
       // Nova: the reactor heats up while the trigger is held
       this.heat = firing ? Math.min(1, this.heat + dt / W8.spinUp.time) : Math.max(0, this.heat - dt * 1.8);

@@ -184,6 +184,9 @@
           '<div class="howto-block"><h3>PAUSAR</h3>' +
             '<div class="keys"><span class="key">ESC</span></div>' +
             '<p>Continue, reinicie ou volte ao menu.</p></div>' +
+          '<div class="howto-block howto-pad"><h3>CONTROLE XBOX</h3>' +
+            '<div class="keys"><span class="key wide">ANALÓG. ESQ.</span><span class="key wide">ANALÓG. DIR.</span><span class="key">RT</span><span class="key">LB</span><span class="key wide">START</span></div>' +
+            '<p>Esquerdo move, direito mira (e atira ao empurrar), RT ou A atira, LB/RB/X lança a onda de choque, Start pausa. Nos menus: direcional navega, A confirma, B volta.</p></div>' +
         '</div>' +
         '<h3 class="sub">POWER-UPS (TEMPORÁRIOS)</h3>' +
         '<ul class="legend">' +
@@ -232,6 +235,7 @@
         '</label>' +
         '<div class="cs-meta"><span id="cs-hint">3 a 10 caracteres · letras, números, - e _</span><b id="cs-count">0/10</b></div>' +
         '<p class="cs-target" id="cs-target"></p>' +
+        '<p class="pad-only cs-padhint">&#127918; &#9650;&#9660; LETRA &nbsp;·&nbsp; &#9664;&#9654; POSIÇÃO &nbsp;·&nbsp; A CONFIRMAR &nbsp;·&nbsp; B APAGAR</p>' +
         '<button class="btn cs-go" id="cs-go" data-act="callsign-go" disabled>PRESSIONE ENTER PARA INICIAR</button>' +
         '<button class="btn small ghost" data-act="back">VOLTAR</button>' +
       '</div>',
@@ -246,7 +250,8 @@
         '</header>' +
         '<div class="ss-cards" id="ss-cards" role="listbox" aria-label="Naves disponíveis"></div>' +
         '<div class="ss-launch-row"><button class="ss-launch" data-act="ship-go"><span>LANÇAR</span></button></div>' +
-        '<p class="ss-keys">&#9664; &#9654; ESCOLHER &nbsp;·&nbsp; 1-4 ATALHO &nbsp;·&nbsp; ENTER LANÇAR &nbsp;·&nbsp; ESC VOLTAR</p>' +
+        '<p class="ss-keys">&#9664; &#9654; ESCOLHER &nbsp;·&nbsp; 1-4 ATALHO &nbsp;·&nbsp; ENTER LANÇAR &nbsp;·&nbsp; ESC VOLTAR' +
+          '<span class="pad-only"> &nbsp;·&nbsp; &#127918; A LANÇAR · B VOLTAR</span></p>' +
         '<button class="ss-back" data-act="ship-back">VOLTAR</button>' +
       '</div>',
 
@@ -330,7 +335,7 @@
       // callsign field: sanitise as the player types, Enter confirms
       var cs = document.getElementById('cs-input');
       if (cs) {
-        cs.addEventListener('input', function () { self._csUpdate(); });
+        cs.addEventListener('input', function () { self._csPadPos = null; self._csUpdate(); });
         cs.addEventListener('keydown', function (e) {
           if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); self.confirmCallsign(); }
           else if (e.key !== 'Escape') game.audio.play('menuHover');
@@ -814,6 +819,7 @@
       var LB = global.Leaderboard;
       var inp = document.getElementById('cs-input');
       if (inp) inp.value = keepTyped ? (this._pendingCallsign || '') : '';
+      this._csPadPos = null;
       var top = LB.load()[0];
       var tgt = document.getElementById('cs-target');
       if (tgt) {
@@ -833,10 +839,13 @@
       var clean = LB.cleanName(inp.value);
       if (inp.value !== clean) inp.value = clean;
       var focused = document.activeElement === inp;
+      var padPos = this._csPadPos;
+      var curIdx = padPos !== null && padPos !== undefined ? padPos : (focused ? clean.length : -1);
       var html = '';
       for (var i = 0; i < LB.NAME_MAX; i++) {
         var ch = clean.charAt(i);
-        var cls = 'cs-slot' + (i < LB.NAME_MIN ? ' req' : '') + (ch ? ' on' : '') + (focused && i === clean.length ? ' cur' : '');
+        var cls = 'cs-slot' + (i < LB.NAME_MIN ? ' req' : '') + (ch ? ' on' : '') + (i === curIdx ? ' cur' : '') +
+          (i === curIdx && padPos !== null && padPos !== undefined ? ' pad' : '');
         html += '<span class="' + cls + '">' + (ch ? esc(ch) : '_') + '</span>';
       }
       var slots = document.getElementById('cs-slots');
